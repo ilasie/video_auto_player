@@ -2,6 +2,7 @@
 #include <shellapi.h>
 #include <string>
 #include <chrono>
+#include <sstream>
 #include "config_manager.h"
 #include "logger.h"
 #include "tray_icon.h"
@@ -30,12 +31,42 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if (config.IsValid() && current_time == config.Time) {
       Logger::Log("Time matched. Launching video: " + config.VideoPath);
 
-      // First, try to launch with explorer shell command (for UWP apps)
-      std::string shellCommand = "shell:AppsFolder\\Microsoft.ZuneVideo_8wekyb3d8bbwe!Microsoft.ZuneVideo";
-      HINSTANCE result = ShellExecuteA(NULL, "open", shellCommand.c_str(), config.VideoPath.c_str(), NULL, SW_SHOW);
+      // Try multiple methods to launch the Movies & TV app
+      bool launched = false;
       
-      // If that fails, try direct Video.UI.exe execution
-      if ((int)result <= 32) {
+      // Using the ms-windows-video URI scheme
+      Logger::Log("Trying method 1 (URI scheme)");
+      std::string uriCommand = "mswindowsvideo:?action=play&location=" + config.VideoPath;
+      HINSTANCE result = ShellExecuteA(NULL, "open", uriCommand.c_str(), NULL, NULL, SW_SHOW);
+      
+      // According to ShellExecute documentation, values greater than 32 indicate success
+      if ((uintptr_t)result > 32) {
+        Logger::Log("Method 1 (URI scheme) succeeded");
+        launched = true;
+      } else {
+        std::ostringstream errorMsg;
+        errorMsg << "Method 1 (URI scheme) failed with error code: " << (uintptr_t)result;
+        Logger::Log(errorMsg.str());
+      }
+      
+      // Method 2: If URI scheme fails, try the AppsFolder approach
+      if (!launched) {
+        Logger::Log("Trying method 2 (AppsFolder)");
+        std::string shellCommand = "shell:AppsFolder\\Microsoft.ZuneVideo_8wekyb3d8bbwe!Microsoft.ZuneVideo";
+        result = ShellExecuteA(NULL, "open", shellCommand.c_str(), config.VideoPath.c_str(), NULL, SW_SHOW);
+        if ((uintptr_t)result > 32) {
+          Logger::Log("Method 2 (AppsFolder) succeeded");
+          launched = true;
+        } else {
+          std::ostringstream errorMsg;
+          errorMsg << "Method 2 (AppsFolder) failed with error code: " << (uintptr_t)result;
+          Logger::Log(errorMsg.str());
+        }
+      }
+      
+      // Method 3: Direct Video.UI.exe execution
+      if (!launched) {
+        Logger::Log("Trying method 3 (direct execution)");
         SHELLEXECUTEINFOA sei = { 0 };
         sei.cbSize = sizeof(sei);
         sei.fMask = SEE_MASK_NOCLOSEPROCESS;
@@ -45,8 +76,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
         sei.nShow = SW_SHOW;
 
         if (ShellExecuteExA(&sei)) {
-          Logger::Log("Video.UI launched successfully");
-          
+          Logger::Log("Method 3 (Video.UI.exe) launched successfully");
+          launched = true;
+        
           /*  MinGW thread models:
            *  - win32: originate Windows thread, unsupports c++11 std::thread
               - posix: pthreads, supports whole std::thread
@@ -57,11 +89,14 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
           // std::this_thread::sleep_for(std::chrono::minutes(1));
           Sleep(60 * 1000);
-        } else {
-          Logger::Log("Failed to launch Video.UI");
         }
+      }
+      
+      // If all methods failed
+      if (!launched) {
+        Logger::Log("Failed to launch any video player after all methods");
       } else {
-        Logger::Log("Video launched successfully via AppsFolder");
+        // Wait to avoid multiple launches
         Sleep(60 * 1000);
       }
     }
