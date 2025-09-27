@@ -22,13 +22,20 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
   MSG msg;
   while (tray.IsRunning()) {
-    // 处理Windows消息
+    // handle window's message
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
       TranslateMessage(&msg);
       DispatchMessage(&msg);
     }
 
-    // 每秒检查一次配置和时间，而不是每30秒检查一次
+    /* MinGW thread models:
+     * - win32: originate Windows thread, unsupports c++11 std::thread
+     * - posix: pthreads, supports whole std::thread
+     * 
+     * to prevent the compatible problem,
+     * uses windows.h `Sleep` instead
+    */
+
     Sleep(1000);
 
     auto now = std::chrono::system_clock::now();
@@ -42,25 +49,26 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
     if (config.IsValid() && current_time == config.Time) {
       Logger::Log("Time matched. Launching video: " + config.VideoPath);
 
-      // 检查文件是否存在
+      // check if the file exists
       std::ifstream file(config.VideoPath);
       if (!file.good()) {
         Logger::Log("Error: Video file does not exist or is not accessible: " + config.VideoPath);
       } else {
         file.close();
         
-        // 直接使用ShellExecute打开视频文件，让系统选择默认播放器
+        // let system choose default video player
         HINSTANCE result = ShellExecuteA(NULL, "open", config.VideoPath.c_str(), NULL, NULL, SW_SHOW);
         
         // according to ShellExecute documentation, values greater than 32 indicate success
         if ((uintptr_t)result > 32) {
-          Logger::Log("Video file opened successfully");
+          Logger::Log("Video file opened successfully. Exiting application.");
+          tray.Exit();
+          break;
         } else {
           std::ostringstream errorMsg;
           errorMsg << "Error opening video file with error code: " << (uintptr_t)result;
           Logger::Log(errorMsg.str());
           
-          // 提供更多信息帮助诊断问题
           Logger::Log("Attempting to open file with full path: " + config.VideoPath);
         }
       }

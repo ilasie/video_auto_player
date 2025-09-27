@@ -10,6 +10,7 @@ public:
   ~TrayIcon();
   bool Create();
   bool IsRunning() const { return m_running; }
+  void Exit() { m_running = false; }
 
 private:
   static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);

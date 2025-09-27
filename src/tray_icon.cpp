@@ -8,13 +8,11 @@
 #define WM_TRAYICON    (WM_USER + 1)
 #define ID_OPEN_FOLDER 1001
 #define ID_EXIT        1002
-#define ID_TIMER       1003
 
-TrayIcon::TrayIcon(HINSTANCE hInst) : m_hInst(hInst), m_hwnd(NULL), m_running(true) { }
+TrayIcon::TrayIcon(HINSTANCE hInst) : m_hInst(hInst) { }
 
 TrayIcon::~TrayIcon() {
   if (m_hwnd) {
-    KillTimer(m_hwnd, ID_TIMER);
     NOTIFYICONDATAA nid = { 0 };
     nid.cbSize = sizeof(nid);
     nid.hWnd = m_hwnd;
@@ -47,16 +45,12 @@ bool TrayIcon::Create() {
 
   Logger::Log("Created window with hwnd: " + std::to_string((uintptr_t)m_hwnd));
   
-  // 确保在创建窗口后设置用户数据
+  // make sure setting user data after creating the window
   SetWindowLongPtr(m_hwnd, GWLP_USERDATA, (LONG_PTR)this);
   Logger::Log("Set window user data immediately after window creation");
   
-  // 确保窗口可见
+  // make sure the window visible
   ShowWindow(m_hwnd, SW_HIDE);
-  
-  // 设置定时器，定期检查托盘图标状态
-  SetTimer(m_hwnd, ID_TIMER, 5000, NULL);
-  Logger::Log("Timer set with ID: " + std::to_string(ID_TIMER));
 
   NOTIFYICONDATAA nid = { 0 };
   nid.cbSize = sizeof(nid);
@@ -67,7 +61,7 @@ bool TrayIcon::Create() {
   nid.hIcon = LoadIcon(NULL, IDI_APPLICATION);
   strcpy(nid.szTip, "Video Auto Player");
 
-  Logger::Log("Adding tray icon with hwnd: " + std::to_string((uintptr_t)nid.hWnd) + ", uID: " + std::to_string(nid.uID) + ", callback message: 0x" + std::to_string(nid.uCallbackMessage));
+  Logger::Log("Adding tray icon with hwnd: " + std::to_string((uintptr_t)nid.hWnd) + ", uID: " + std::to_string(nid.uID));
   
   BOOL result = Shell_NotifyIconA(NIM_ADD, &nid);
   Logger::Log("Shell_NotifyIconA result: " + std::to_string(result));
@@ -82,35 +76,29 @@ bool TrayIcon::Create() {
 LRESULT CALLBACK TrayIcon::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   TrayIcon* self = (TrayIcon*)GetWindowLongPtr(hwnd, GWLP_USERDATA);
   
-  // 只记录关键消息，避免日志过多影响性能
-  if (msg == WM_TRAYICON || msg == WM_CREATE || msg == WM_COMMAND || msg == WM_DESTROY || msg == WM_TIMER) {
-    std::string msgStr = "WndProc received message: 0x";
-    char msgBuffer[16];
-    sprintf_s(msgBuffer, "%X", msg);
-    msgStr += std::string(msgBuffer);
-    msgStr += " (hwnd: " + std::to_string((uintptr_t)hwnd) + ", wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam) + ")";
-    Logger::Log(msgStr);
-  }
+  // record all messages
+  std::string msgStr = "WndProc received message: 0x";
+  char msgBuffer[16];
+  sprintf_s(msgBuffer, "%X", msg);
+  msgStr += std::string(msgBuffer);
+  msgStr += " (hwnd: " + std::to_string((uintptr_t)hwnd) + ")";
+  Logger::Log(msgStr);
   
   if (msg == WM_TRAYICON) {
-    // 不再记录每个WM_TRAYICON消息的详细信息，只记录关键事件
+    Logger::Log("Received WM_TRAYICON message with wParam: " + std::to_string(wParam) + ", lParam: 0x" + std::to_string(lParam));
     if (lParam == WM_RBUTTONUP) {
       Logger::Log("Processing RBUTTONUP");
-      // 使用 GetMessagePos() 获取准确的鼠标位置，解决高DPI环境下的菜单位置偏移问题
+      // using GetMessagePos() to get accurate mouse position to solve menu shifting in high-dpi environment
       DWORD msgPos = GetMessagePos();
       POINT pt;
       pt.x = (short)LOWORD(msgPos);
       pt.y = (short)HIWORD(msgPos);
-      
-      // 确保坐标有效
-      if (pt.x >= 0 && pt.y >= 0) {
-        Logger::Log("Mouse position: " + std::to_string(pt.x) + ", " + std::to_string(pt.y));
-        if (self) {
-          Logger::Log("Calling ShowContextMenu");
-          self->ShowContextMenu(hwnd, pt);
-        } else {
-          Logger::Log("Error: 'self' pointer is null in WndProc.");
-        }
+      Logger::Log("Mouse position: " + std::to_string(pt.x) + ", " + std::to_string(pt.y));
+      if (self) {
+        Logger::Log("Calling ShowContextMenu");
+        self->ShowContextMenu(hwnd, pt);
+      } else {
+        Logger::Log("Error: 'self' pointer is null in WndProc.");
       }
     } else if (lParam == WM_LBUTTONUP) {
       Logger::Log("Processing LBUTTONUP");
@@ -128,8 +116,9 @@ LRESULT CALLBACK TrayIcon::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
       Logger::Log("Processing MBUTTONUP");
     } else if (lParam == WM_MBUTTONDBLCLK) {
       Logger::Log("Processing MBUTTONDBLCLK");
+    } else {
+      Logger::Log("Unknown WM_TRAYICON lParam: 0x" + std::to_string(lParam));
     }
-    return 0; // 处理完WM_TRAYICON消息后直接返回
   } else if (msg == WM_CREATE) {
     Logger::Log("Processing WM_CREATE message with wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam));
     CREATESTRUCT* cs = (CREATESTRUCT*)lParam;
@@ -156,14 +145,19 @@ LRESULT CALLBACK TrayIcon::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lP
     } else {
       Logger::Log("Error: 'self' pointer is null in WM_COMMAND.");
     }
-  } else if (msg == WM_TIMER) {
-    if (wParam == ID_TIMER) {
-      Logger::Log("Timer tick: Checking tray icon status");
-      // 可以在这里添加检查托盘图标状态的代码
-    }
   } else if (msg == WM_DESTROY) {
     Logger::Log("Processing WM_DESTROY message");
     PostQuitMessage(0);
+  } else if (msg == WM_MOUSEMOVE) {
+    Logger::Log("Processing WM_MOUSEMOVE message with wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam));
+  } else if (msg == WM_LBUTTONDOWN) {
+    Logger::Log("Processing WM_LBUTTONDOWN message with wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam));
+  } else if (msg == WM_RBUTTONDOWN) {
+    Logger::Log("Processing WM_RBUTTONDOWN message with wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam));
+  } else if (msg == WM_LBUTTONUP) {
+    Logger::Log("Processing WM_LBUTTONUP message with wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam));
+  } else if (msg == WM_RBUTTONUP) {
+    Logger::Log("Processing WM_RBUTTONUP message with wParam: " + std::to_string(wParam) + ", lParam: " + std::to_string(lParam));
   }
   return DefWindowProc(hwnd, msg, wParam, lParam);
 }
@@ -190,7 +184,7 @@ void TrayIcon::ShowContextMenu(HWND hwnd, POINT pt) {
   Logger::Log("About to call TrackPopupMenu at position: " + std::to_string(pt.x) + ", " + std::to_string(pt.y));
   
   // 使用TPM_RIGHTBUTTON标志确保右键点击时正确显示菜单
-  UINT uFlags = TPM_RIGHTBUTTON | TPM_LEFTALIGN | TPM_BOTTOMALIGN;
+  UINT uFlags = TPM_RIGHTBUTTON;
   TrackPopupMenu(hMenu, uFlags, pt.x, pt.y, 0, hwnd, NULL);
   
   Logger::Log("TrackPopupMenu called");
