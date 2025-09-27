@@ -12,6 +12,10 @@ struct Config {
 class ConfigManager {
 public:
   static Config Load();
+  static void CreateDefaultConfig();
+
+private:
+  static std::string GetConfigPath();
 };
 
 #endif

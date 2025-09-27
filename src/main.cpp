@@ -14,6 +14,9 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 
   Logger::Init();
 
+  // create default config file if it doesn't exist
+  ConfigManager::CreateDefaultConfig();
+
   TrayIcon tray(hInstance);
   if (!tray.Create()) {
     Logger::Log("Failed to create tray icon");
