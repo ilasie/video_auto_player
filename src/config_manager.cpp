@@ -45,7 +45,7 @@ void ConfigManager::CreateDefaultConfig() {
     userPath = std::string(path);
   }
   json defaultConfig = {
-    {"Video", userPath + "\\.video_auto_player\\example-exercise.mp4"},
+    {"Video", userPath + "\\.video_auto_player\\example.mp4"},
     {"Time", "09:10"}
   };
 

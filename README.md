@@ -1,6 +1,6 @@
-Automatical video player for Windows.
+Automatic video player for Windows.
 
-## Featrues
+## Features
 
 - [x] Able to configure.
 - [x] Close after running the task.
@@ -13,7 +13,7 @@ Scan the release page and install the .msi file, then click it in your machine.
 
 ### Manually
 
-1. Make sure complier has been installed. If not, please install gcc for your machine.
+1. Make sure compiler has been installed. If not, please install gcc for your machine.
 
 2. Clone this repository.
 
@@ -28,10 +28,20 @@ cd video_auto_player
 g++ -static -O2 -std=c++17 -I. -o "Video Auto Player.exe" src/*.cpp
 ```
 
-4. Run by clicking `Video Auto Player.exe` generated.
-
-5. Add this execute to startup. (Optional)
+4. Copy the example video or fix config in the config dir.
 
 ```bash
-./AddToStartup.bat
+copy example.mp4 "%USERPROFILE%\.video_auto_player\"
 ```
+
+5. Run by clicking `Video Auto Player.exe` generated.
+
+6. Add this execute to startup. (Optional)
+
+```bash
+AddToStartup.bat
+```
+
+## Third-Party Libraries
+
+This project uses [JSON for Modern C++](https://github.com/nlohmann/json) by Niels Lohmann, licensed under the MIT License.

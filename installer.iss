@@ -1,18 +1,9 @@
-<<<<<<< HEAD
 ; Inno Setup compliing script
-=======
-; Inno Setup 脚本文件
-; 用于创建 Video Auto Player 安装程序
->>>>>>> a5e549fa5e5a5a53444de59295c566932651c3a8
 
 [Setup]
 AppName=Video Auto Player
 AppVersion=1.1
-<<<<<<< HEAD
 AppPublisher=ilasie
-=======
-AppPublisher=Video Auto Player Team
->>>>>>> a5e549fa5e5a5a53444de59295c566932651c3a8
 AppPublisherURL=https://github.com/ilasie/video_auto_player
 AppSupportURL=https://github.com/ilasie/video_auto_player
 AppUpdatesURL=https://github.com/ilasie/video_auto_player/releases
@@ -37,6 +28,7 @@ Name: "startup"; Description: "开机启动"; GroupDescription: "启动选项:";
 Source: "Video Auto Player.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "AddToStartup.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "README.md"; DestDir: "{app}"; Flags: ignoreversion
+Source: "example.mp4"; DestDir: "{userdocs}\.video_auto_player"; Flags: ignoreversion
 
 [Icons]
 Name: "{group}\Video Auto Player"; Filename: "{app}\Video Auto Player.exe"
@@ -56,10 +48,6 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if (CurStep = ssPostInstall) then
   begin
-<<<<<<< HEAD
-=======
-    // 安装后创建默认配置文件目录
->>>>>>> a5e549fa5e5a5a53444de59295c566932651c3a8
     if not DirExists(ExpandConstant('{userdocs}\.video_auto_player')) then
       CreateDir(ExpandConstant('{userdocs}\.video_auto_player'));
   end;
