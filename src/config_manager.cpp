@@ -39,8 +39,13 @@ void ConfigManager::CreateDefaultConfig() {
   }
 
   // create default config
+  std::string userPath = "";
+  char path[MAX_PATH];
+  if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, path))) {
+    userPath = std::string(path);
+  }
   json defaultConfig = {
-    {"Video", "C:\\Users\\[安装用户]\\.video_auto_player\\example-exrcise.mp4"},
+    {"Video", userPath + "\\.video_auto_player\\example-exercise.mp4"},
     {"Time", "09:10"}
   };
 
