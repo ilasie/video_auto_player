@@ -1,4 +1,4 @@
-Automatical video player for windows
+Automatical video player for Windows.
 
 ## Featrues
 
@@ -7,19 +7,13 @@ Automatical video player for windows
 
 ## Installing
 
-### Install graphically
+### Auto
 
 Scan the release page and install the .msi file, then click it in your machine. 
 
-### Install manaully
+### Manually
 
-1. Make sure complier has been installed.
-
-```bash
-g++ --version
-```
-
-If no output, please install gcc for your machine.
+1. Make sure complier has been installed. If not, please install gcc for your machine.
 
 2. Clone this repository.
 
@@ -34,7 +28,9 @@ cd video_auto_player
 g++ -static -O2 -std=c++17 -I. -o "Video Auto Player.exe" src/*.cpp
 ```
 
-4. Add this execute to startup (Optional)
+4. Run by clicking `Video Auto Player.exe` generated.
+
+5. Add this execute to startup. (Optional)
 
 ```bash
 ./AddToStartup.bat
