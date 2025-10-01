@@ -9,11 +9,11 @@ Automatic video player for Windows 10/11.
 
 ### Automatically
 
-Scan the release page and install the .msi file, then click it in your machine. 
+Scan the release page and install the .msi file, then run it on your machine. 
 
 ### Manually
 
-1. Make sure compiler has been installed. If not, please install gcc for your machine.
+1. Make sure a compiler has been installed. If not, please install gcc for your machine.
 
 2. Clone this repository.
 
@@ -28,9 +28,9 @@ cd path/to/install_dir/video_auto_player
 g++ -static -O2 -std=c++17 -I. -o "Video Auto Player.exe" src/*.cpp
 ```
 
-4. Run by clicking `Video Auto Player.exe` generated.
+4. Run by clicking the `Video Auto Player.exe` file generated.
 
-5. Add this execute to startup. (Optional)
+5. Add this executable to startup. (Optional)
 
 ```bash
 AddToStartup.bat
