@@ -3,6 +3,7 @@
 #include <fstream>
 #include <shlobj.h>
 #include <sys/stat.h>
+#include <windows.h>
 #include "json.hpp" // nlohmann/json
 
 using json = nlohmann::json;
@@ -36,6 +37,41 @@ void ConfigManager::CreateDefaultConfig() {
     // config file already exists
     f.close();
     return;
+  }
+
+  // create default config directory if it doesn't exist
+  char userProfile[MAX_PATH];
+  std::string configDir;
+  if (SUCCEEDED(SHGetFolderPathA(NULL, CSIDL_PROFILE, NULL, 0, userProfile))) {
+    configDir = std::string(userProfile) + "\\.video_auto_player";
+    if (!CreateDirectoryA(configDir.c_str(), NULL)) {
+      if (GetLastError() != ERROR_ALREADY_EXISTS) {
+        Logger::Log("Failed to create config directory: " + configDir);
+      }
+    }
+  }
+
+  // copy example.mp4 from executable directory to config directory
+  char exePath[MAX_PATH];
+  if (GetModuleFileNameA(NULL, exePath, MAX_PATH)) {
+    std::string exeDir = exePath;
+    size_t pos = exeDir.find_last_of("\\");
+    if (pos != std::string::npos) {
+      exeDir = exeDir.substr(0, pos);
+      std::string sourceExample = exeDir + "\\example.mp4";
+      std::string destExample = configDir + "\\example.mp4";
+
+      // copy the file
+      if (CopyFileA(sourceExample.c_str(), destExample.c_str(), TRUE)) {
+        Logger::Log("Successfully copied example.mp4 to config directory");
+      } else {
+        if (GetLastError() == ERROR_FILE_EXISTS) {
+          Logger::Log("example.mp4 already exists in config directory");
+        } else {
+          Logger::Log("Failed to copy example.mp4 to config directory");
+        }
+      }
+    }
   }
 
   // create default config

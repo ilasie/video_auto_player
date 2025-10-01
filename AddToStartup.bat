@@ -15,14 +15,14 @@ if not exist "%STARTUP_DIR%" (
   exit /b 1
 )
 
-echo Moving "Video Auto Player.exe" to startup dir ...
-copy /Y "Video Auto Player.exe" "%STARTUP_DIR%\Video Auto Player.exe"
+echo Creating shortcut to "Video Auto Player.exe" in startup dir ...
+powershell -Command "$WshShell = New-Object -comObject WScript.Shell; $Shortcut = $WshShell.CreateShortcut('%STARTUP_DIR%\Video Auto Player.lnk'); $Shortcut.TargetPath = '%cd%\Video Auto Player.exe'; $Shortcut.Save()"
 
 if %ERRORLEVEL% EQU 0 (
-  echo Succeed in copying "Video Auto Player.exe"
-  echo Position: %STARTUP_DIR%\Video Auto Player.exe
+  echo Succeed in creating shortcut for "Video Auto Player.exe"
+  echo Shortcut position: %STARTUP_DIR%\Video Auto Player.lnk
 ) else (
-  echo Error: failed copied
+  echo Error: failed to create shortcut
   pause
   exit /b 1
 )

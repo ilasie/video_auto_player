@@ -1,4 +1,4 @@
-Automatic video player for Windows.
+Automatic video player for Windows 10/11.
 
 ## Features
 
@@ -7,7 +7,7 @@ Automatic video player for Windows.
 
 ## Installing
 
-### Auto
+### Automatically
 
 Scan the release page and install the .msi file, then click it in your machine. 
 
@@ -18,25 +18,19 @@ Scan the release page and install the .msi file, then click it in your machine.
 2. Clone this repository.
 
 ```bash
-git clone --depth 1 https://github.com/ilasie/video_auto_player.git video_auto_player
+git clone --depth 1 https://github.com/ilasie/video_auto_player.git path/to/your/install_dir/video_auto_player
 ```
 
 3. Build.
 
 ```bash
-cd video_auto_player
+cd path/to/install_dir/video_auto_player
 g++ -static -O2 -std=c++17 -I. -o "Video Auto Player.exe" src/*.cpp
 ```
 
-4. Copy the example video or fix config in the config dir.
+4. Run by clicking `Video Auto Player.exe` generated.
 
-```bash
-copy example.mp4 "%USERPROFILE%\.video_auto_player\"
-```
-
-5. Run by clicking `Video Auto Player.exe` generated.
-
-6. Add this execute to startup. (Optional)
+5. Add this execute to startup. (Optional)
 
 ```bash
 AddToStartup.bat
