@@ -1,5 +1,7 @@
 Automatic video player for Windows 10/11.
 
+English|[简体中文](README_zh-CN.md)
+
 ## Features
 
 - [x] Able to configure.
@@ -9,7 +11,7 @@ Automatic video player for Windows 10/11.
 
 ### Automatically
 
-Scan the release page and install the .msi file, then run it on your machine. 
+Scan the release page and install the .msi file.
 
 ### Manually
 
